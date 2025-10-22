@@ -24,7 +24,7 @@ grpcurl -plaintext \
 localhost:50051 catalogue.CatalogueService/GetAllSellers
 
 
-//create item. (NEED TO FIX ALL ITEMS MUST HAVE TITLE AND DESCRIPTION AND PRICE and everything)
+//create item
 
 grpcurl -plaintext \
 -import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
@@ -33,7 +33,34 @@ grpcurl -plaintext \
 localhost:50051 catalogue.CatalogueService/CreateItem
 
 
-//negative starting starting_price (NEED TO FIX IT PROCESSES NEGATIVE since price cant be negative or zero.)
+//create item with missing title
+
+grpcurl -plaintext \
+-import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+-proto catalogue.proto \
+-d '{"title":"","description":"new","starting_price":15,"duration_hours":48,"seller_id":12}' \
+localhost:50051 catalogue.CatalogueService/CreateItem
+
+//create item with missing starting price
+
+grpcurl -plaintext \
+-import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+-proto catalogue.proto \
+-d '{"title":"boat","description":"new","duration_hours":48,"seller_id":12}' \
+localhost:50051 catalogue.CatalogueService/CreateItem
+
+//create item with missing duration_hours
+
+grpcurl -plaintext \
+-import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+-proto catalogue.proto \
+-d '{"title":"boat","description":"new","starting_price":15,"seller_id":12}' \
+localhost:50051 catalogue.CatalogueService/CreateItem
+
+
+
+
+//negative starting price 
 
 grpcurl -plaintext \
 -import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
@@ -42,7 +69,7 @@ grpcurl -plaintext \
 localhost:50051 catalogue.CatalogueService/CreateItem
 
 
-//invalid time duration (when creating item, duration much be greater then 0)
+//invalid time duration 
 
 grpcurl -plaintext \
 -import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \

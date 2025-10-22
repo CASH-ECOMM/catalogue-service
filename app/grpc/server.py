@@ -61,12 +61,22 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
 
     def CreateItem(self, request, context):
         db = SessionLocal()
+
+        if not request.title.strip():
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Title is required")
+        if not request.description.strip():
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Description is required")
+        if request.starting_price is None or request.starting_price <= 0:
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Starting price must be greater than 0")
+        if request.duration_hours is None or request.duration_hours <= 0:
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Duration hours must be greater than 0")
+        
         seller = db.query(models.Seller).filter(models.Seller.id == request.seller_id).first()
         if not seller:
             context.abort(grpc.StatusCode.NOT_FOUND, "Seller not found")
 
         now = datetime.utcnow()
-        end_time = now.replace(microsecond=0) + timedelta(hours=request.duration_hours)
+        end_time = now + timedelta(hours=request.duration_hours)
 
         new_item = models.Item(
             title=request.title,
@@ -98,6 +108,7 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
             seller_id=new_item.seller_id,
             remaining_time_seconds=remaining
         )
+
 
     def CreateSeller(self, request, context):
         db = SessionLocal()
