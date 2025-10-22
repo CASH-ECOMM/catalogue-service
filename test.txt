@@ -1,0 +1,113 @@
+
+//create new seller
+
+grpcurl -plaintext \
+-import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+-proto catalogue.proto \
+-d '{"name":"Bob","email":"bob@gmail.com"}' \
+localhost:50051 catalogue.CatalogueService/CreateSeller
+
+
+//duplicate email 
+
+grpcurl -plaintext \
+-import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+-proto catalogue.proto \
+-d '{"name":"Bobby","email":"bob@gmail.com"}' \
+localhost:50051 catalogue.CatalogueService/CreateSeller
+
+//get all sellers
+
+grpcurl -plaintext \
+-import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+-proto catalogue.proto \
+localhost:50051 catalogue.CatalogueService/GetAllSellers
+
+
+//create item. (NEED TO FIX ALL ITEMS MUST HAVE TITLE AND DESCRIPTION AND PRICE and everything)
+
+grpcurl -plaintext \
+-import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+-proto catalogue.proto \
+-d '{"title":"toy car","description":"car, blue","starting_price":15,"duration_hours":48,"seller_id":12}' \
+localhost:50051 catalogue.CatalogueService/CreateItem
+
+
+//negative starting starting_price (NEED TO FIX IT PROCESSES NEGATIVE since price cant be negative or zero.)
+
+grpcurl -plaintext \
+-import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+-proto catalogue.proto \
+-d '{"title":"Old Mouse","description":"Broken scroll wheel","starting_price":-10,"duration_hours":10,"seller_id":12}' \
+localhost:50051 catalogue.CatalogueService/CreateItem
+
+
+//invalid time duration (when creating item, duration much be greater then 0)
+
+grpcurl -plaintext \
+-import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+-proto catalogue.proto \
+-d '{"title":" Monitor","description":"24 inch","starting_price":200,"duration_hours":0,"seller_id":12}' \
+localhost:50051 catalogue.CatalogueService/CreateItem
+
+
+//seller doesnt exist
+
+grpcurl -plaintext \
+-import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+-proto catalogue.proto \
+-d '{"title":"Camera","description":"DSLR Nikon","starting_price":400,"duration_hours":72,"seller_id":999}' \
+localhost:50051 catalogue.CatalogueService/CreateItem
+
+========================
+ITEM SEARCH
+
+//item search keyword
+
+grpcurl -plaintext \
+-import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+-proto catalogue.proto \
+-d '{"keyword":"toy car"}' \
+localhost:50051 catalogue.CatalogueService/SearchItems
+
+//search keyword case insensitive
+
+grpcurl -plaintext \
+-import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+-proto catalogue.proto \
+-d '{"keyword":"TOY CAR"}' \
+localhost:50051 catalogue.CatalogueService/SearchItems
+
+//search for keyword that we know doesnt exist in items list
+
+grpcurl -plaintext \
+-import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+-proto catalogue.proto \
+-d '{"keyword":"Spaceship"}' \
+localhost:50051 catalogue.CatalogueService/SearchItems
+
+//search empty "" keyword (should return all items)
+
+grpcurl -plaintext \
+-import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+-proto catalogue.proto \
+-d '{"keyword":""}' \
+localhost:50051 catalogue.CatalogueService/SearchItems
+
+
+==========
+
+//get all items
+
+grpcurl -plaintext \
+-import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+-proto catalogue.proto \
+localhost:50051 catalogue.CatalogueService/GetAllItems
+
+//check if remainingTimeSeconds decreases
+Run this command twice:
+
+grpcurl -plaintext \
+-import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+-proto catalogue.proto \
+localhost:50051 catalogue.CatalogueService/GetAllItems

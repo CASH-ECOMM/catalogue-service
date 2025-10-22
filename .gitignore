@@ -1,0 +1,2 @@
+app/grpc/*_pb2.py
+app/grpc/*_pb2_grpc.py

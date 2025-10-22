@@ -16,9 +16,22 @@ class ItemResponse(ItemBase):
     created_at: datetime
     seller_id: int
     current_price: float
-    end_time: datetime
+    end_time: datetime | None
     active: bool
     remaining_time_seconds: int
 
     class Config:
         orm_mode = True
+        from_attributes = True  
+
+
+class SellerBase(BaseModel):
+    name: str
+    email: str
+
+class SellerResponse(SellerBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+        from_attributes = True  
