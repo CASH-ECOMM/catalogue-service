@@ -1,4 +1,4 @@
-**/__pycache__/
+**/__pycache__/**
 __pycache__/
 *.py[cod]
 *.so
@@ -18,3 +18,5 @@ app/grpc/*_pb2_grpc.py
 *.log
 *.tmp
 *.bak
+
+.mypy_cache
