@@ -4,9 +4,39 @@ from datetime import datetime, timedelta
 
 from app.database import SessionLocal
 from app import models
-from app.grpc import catalogue_pb2, catalogue_pb2_grpc
-from . import catalogue_pb2, catalogue_pb2_grpc
 
+
+import os
+import subprocess
+
+proto_file = os.path.join(os.path.dirname(__file__), "catalogue.proto")
+pb2_file = os.path.join(os.path.dirname(__file__), "catalogue_pb2.py")
+pb2_grpc_file = os.path.join(os.path.dirname(__file__), "catalogue_pb2_grpc.py")
+
+if not (os.path.exists(pb2_file) and os.path.exists(pb2_grpc_file)):
+    print("Generating gRPC python code from catalogue.proto")
+    subprocess.run([
+        "python", "-m", "grpc_tools.protoc",
+        f"-I{os.path.dirname(proto_file)}",
+        f"--python_out={os.path.dirname(proto_file)}",
+        f"--grpc_python_out={os.path.dirname(proto_file)}",
+        proto_file
+    ], check=True)
+   
+    for path in [pb2_grpc_file]:
+        with open(path, "r") as f:
+            content = f.read()
+        content = content.replace(
+            "import catalogue_pb2 as catalogue__pb2",
+            "from app.grpc import catalogue_pb2 as catalogue__pb2"
+        )
+        with open(path, "w") as f:
+            f.write(content)
+    
+
+from app.grpc import catalogue_pb2, catalogue_pb2_grpc
+
+from . import catalogue_pb2, catalogue_pb2_grpc
 
 
 class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
