@@ -36,7 +36,6 @@ message ItemResponse {
   int32 remaining_time_seconds = 11;
   int32 shipping_cost = 12;
   int32 shipping_time = 13;
-  string status = 14;
 
 }
 

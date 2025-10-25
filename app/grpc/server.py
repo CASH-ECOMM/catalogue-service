@@ -48,7 +48,6 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
 
         for item in items:
             remaining = max(int((item.end_time - now).total_seconds()), 0)
-            status = "ACTIVE" if item.active else "INACTIVE"
             response.items.add(
                 id=item.id,
                 title=item.title,
@@ -62,8 +61,7 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
                 seller_id=item.seller_id,
                 shipping_cost=item.shipping_cost,
                 shipping_time=item.shipping_time,
-                remaining_time_seconds=remaining,
-                status=status
+                remaining_time_seconds=remaining
             )
         return response
 
@@ -78,7 +76,6 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
 
         for item in results:
             remaining = max(int((item.end_time - now).total_seconds()), 0)
-            status = "ACTIVE" if item.active else "INACTIVE"
             response.items.add(
                 id=item.id,
                 title=item.title,
@@ -92,8 +89,7 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
                 seller_id=item.seller_id,
                 shipping_cost=item.shipping_cost,
                 shipping_time=item.shipping_time,
-                remaining_time_seconds=remaining,
-                status=status
+                remaining_time_seconds=remaining
             )
         return response
 
@@ -127,7 +123,6 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
         db.refresh(new_item)
 
         remaining = max(int((end_time - now).total_seconds()), 0)
-        status = "ACTIVE" if new_item.active else "INACTIVE"
 
         return catalogue_pb2.ItemResponse(
             id=new_item.id,
@@ -142,8 +137,7 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
             seller_id=new_item.seller_id,
             shipping_cost=new_item.shipping_cost,
             shipping_time=new_item.shipping_time,
-            remaining_time_seconds=remaining,
-            status=status
+            remaining_time_seconds=remaining
         )
 
 

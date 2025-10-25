@@ -16,8 +16,6 @@ class Item(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     end_time = Column(DateTime)
     active = Column(Boolean, default=True)
-    status = Column(String, default="ACTIVE")
-
 
     seller_id = Column(Integer)
 
