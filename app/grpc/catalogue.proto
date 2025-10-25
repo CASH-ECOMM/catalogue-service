@@ -6,8 +6,6 @@ service CatalogueService {
   rpc GetAllItems(Empty) returns (ItemList);
   rpc SearchItems(SearchRequest) returns (ItemList);
   rpc CreateItem(CreateItemRequest) returns (ItemResponse);
-  rpc CreateSeller(CreateSellerRequest) returns (SellerResponse);
-  rpc GetAllSellers(Empty) returns (SellerList);
 }
 
 message Empty {}
@@ -28,32 +26,22 @@ message ItemResponse {
   int32 id = 1;
   string title = 2;
   string description = 3;
-  double starting_price = 4;
-  double current_price = 5;
-  string auction_type = 6;
-  bool active = 7;
-  int32 duration_hours = 8;
-  string created_at = 9;
-  string end_time = 10;
-  int32 seller_id = 11;
-  int32 remaining_time_seconds = 12;
+  int32 starting_price = 4;
+  int32 current_price = 5;
+  bool active = 6;
+  int32 duration_hours = 7;
+  string created_at = 8;
+  string end_time = 9;
+  int32 seller_id = 10;
+  int32 remaining_time_seconds = 11;
+  int32 shipping_cost = 12;
+  int32 shipping_time = 13;
+  string status = 14;
+
 }
+
 
 message ItemList {
   repeated ItemResponse items = 1;
 }
 
-message CreateSellerRequest {
-  string name = 1;
-  string email = 2;
-}
-
-message SellerResponse {
-  int32 id = 1;
-  string name = 2;
-  string email = 3;
-}
-
-message SellerList {
-  repeated SellerResponse sellers = 1;
-}

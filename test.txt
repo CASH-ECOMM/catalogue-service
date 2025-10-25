@@ -1,36 +1,12 @@
 
-//create new seller
-
-grpcurl -plaintext \
--import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
--proto catalogue.proto \
--d '{"name":"Bob","email":"bob@gmail.com"}' \
-localhost:50051 catalogue.CatalogueService/CreateSeller
-
-
-//duplicate email 
-
-grpcurl -plaintext \
--import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
--proto catalogue.proto \
--d '{"name":"Bobby","email":"bob@gmail.com"}' \
-localhost:50051 catalogue.CatalogueService/CreateSeller
-
-//get all sellers
-
-grpcurl -plaintext \
--import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
--proto catalogue.proto \
-localhost:50051 catalogue.CatalogueService/GetAllSellers
-
 
 //create item
 
 grpcurl -plaintext \
--import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
--proto catalogue.proto \
--d '{"title":"toy car","description":"car, blue","starting_price":15,"duration_hours":48,"seller_id":12}' \
-localhost:50051 catalogue.CatalogueService/CreateItem
+  -import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+  -proto catalogue.proto \
+  -d '{"title":"toy car","description":"car, blue","starting_price":15,"duration_hours":48,"seller_id":12}' \
+  localhost:50051 catalogue.CatalogueService/CreateItem
 
 
 //create item with missing title
@@ -78,13 +54,7 @@ grpcurl -plaintext \
 localhost:50051 catalogue.CatalogueService/CreateItem
 
 
-//seller doesnt exist
 
-grpcurl -plaintext \
--import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
--proto catalogue.proto \
--d '{"title":"Camera","description":"DSLR Nikon","starting_price":400,"duration_hours":72,"seller_id":999}' \
-localhost:50051 catalogue.CatalogueService/CreateItem
 
 ========================
 ITEM SEARCH

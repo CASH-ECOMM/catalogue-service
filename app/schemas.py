@@ -12,7 +12,6 @@ class ItemCreate(ItemBase):
 
 class ItemResponse(ItemBase):
     id: int
-    auction_type: str
     created_at: datetime
     seller_id: int
     current_price: float
@@ -25,13 +24,4 @@ class ItemResponse(ItemBase):
         from_attributes = True  
 
 
-class SellerBase(BaseModel):
-    name: str
-    email: str
 
-class SellerResponse(SellerBase):
-    id: int
-
-    class Config:
-        orm_mode = True
-        from_attributes = True  

@@ -5,36 +5,41 @@ from datetime import datetime, timedelta
 from app.database import SessionLocal
 from app import models
 from app.grpc import catalogue_pb2, catalogue_pb2_grpc
+from . import catalogue_pb2, catalogue_pb2_grpc
+
+
 
 class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
     def GetAllItems(self, request, context):
         db = SessionLocal()
-        items = db.query(models.Item).filter(models.Item.active == True).all()
+        items = db.query(models.Item).all()
         now = datetime.utcnow()
         response = catalogue_pb2.ItemList()
 
         for item in items:
             remaining = max(int((item.end_time - now).total_seconds()), 0)
+            status = "ACTIVE" if item.active else "INACTIVE"
             response.items.add(
                 id=item.id,
                 title=item.title,
                 description=item.description,
                 starting_price=item.starting_price,
                 current_price=item.current_price,
-                auction_type=item.auction_type,
                 active=item.active,
                 duration_hours=item.duration_hours,
                 created_at=item.created_at.isoformat(),
                 end_time=item.end_time.isoformat() if item.end_time else "",
                 seller_id=item.seller_id,
-                remaining_time_seconds=remaining
+                shipping_cost=item.shipping_cost,
+                shipping_time=item.shipping_time,
+                remaining_time_seconds=remaining,
+                status=status
             )
         return response
 
     def SearchItems(self, request, context):
         db = SessionLocal()
         results = db.query(models.Item).filter(
-            models.Item.active == True,
             models.Item.title.ilike(f"%{request.keyword}%")
         ).all()
 
@@ -43,19 +48,22 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
 
         for item in results:
             remaining = max(int((item.end_time - now).total_seconds()), 0)
+            status = "ACTIVE" if item.active else "INACTIVE"
             response.items.add(
                 id=item.id,
                 title=item.title,
                 description=item.description,
                 starting_price=item.starting_price,
                 current_price=item.current_price,
-                auction_type=item.auction_type,
                 active=item.active,
                 duration_hours=item.duration_hours,
                 created_at=item.created_at.isoformat(),
                 end_time=item.end_time.isoformat() if item.end_time else "",
                 seller_id=item.seller_id,
-                remaining_time_seconds=remaining
+                shipping_cost=item.shipping_cost,
+                shipping_time=item.shipping_time,
+                remaining_time_seconds=remaining,
+                status=status
             )
         return response
 
@@ -70,10 +78,6 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
             context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Starting price must be greater than 0")
         if request.duration_hours is None or request.duration_hours <= 0:
             context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Duration hours must be greater than 0")
-        
-        seller = db.query(models.Seller).filter(models.Seller.id == request.seller_id).first()
-        if not seller:
-            context.abort(grpc.StatusCode.NOT_FOUND, "Seller not found")
 
         now = datetime.utcnow()
         end_time = now + timedelta(hours=request.duration_hours)
@@ -93,6 +97,7 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
         db.refresh(new_item)
 
         remaining = max(int((end_time - now).total_seconds()), 0)
+        status = "ACTIVE" if new_item.active else "INACTIVE"
 
         return catalogue_pb2.ItemResponse(
             id=new_item.id,
@@ -100,35 +105,16 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
             description=new_item.description,
             starting_price=new_item.starting_price,
             current_price=new_item.current_price,
-            auction_type=new_item.auction_type,
             active=new_item.active,
             duration_hours=new_item.duration_hours,
             created_at=new_item.created_at.isoformat(),
             end_time=new_item.end_time.isoformat() if new_item.end_time else "",
             seller_id=new_item.seller_id,
-            remaining_time_seconds=remaining
+            shipping_cost=new_item.shipping_cost,
+            shipping_time=new_item.shipping_time,
+            remaining_time_seconds=remaining,
+            status=status
         )
-
-
-    def CreateSeller(self, request, context):
-        db = SessionLocal()
-        seller = models.Seller(name=request.name, email=request.email)
-        db.add(seller)
-        db.commit()
-        db.refresh(seller)
-        return catalogue_pb2.SellerResponse(
-            id=seller.id,
-            name=seller.name,
-            email=seller.email
-        )
-
-    def GetAllSellers(self, request, context):
-        db = SessionLocal()
-        sellers = db.query(models.Seller).all()
-        response = catalogue_pb2.SellerList()
-        for s in sellers:
-            response.sellers.add(id=s.id, name=s.name, email=s.email)
-        return response
 
 
 def serve():
