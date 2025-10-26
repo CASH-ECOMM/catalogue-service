@@ -1,0 +1,110 @@
+
+
+//create item
+
+grpcurl -plaintext \
+  -import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+  -proto catalogue.proto \
+  -d '{"title":"toy car","description":"car, blue","starting_price":15,"duration_hours":48,"seller_id":12}' \
+  localhost:50051 catalogue.CatalogueService/CreateItem
+
+
+//create item with missing title
+
+grpcurl -plaintext \
+-import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+-proto catalogue.proto \
+-d '{"title":"","description":"new","starting_price":15,"duration_hours":48,"seller_id":12}' \
+localhost:50051 catalogue.CatalogueService/CreateItem
+
+//create item with missing starting price
+
+grpcurl -plaintext \
+-import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+-proto catalogue.proto \
+-d '{"title":"boat","description":"new","duration_hours":48,"seller_id":12}' \
+localhost:50051 catalogue.CatalogueService/CreateItem
+
+//create item with missing duration_hours
+
+grpcurl -plaintext \
+-import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+-proto catalogue.proto \
+-d '{"title":"boat","description":"new","starting_price":15,"seller_id":12}' \
+localhost:50051 catalogue.CatalogueService/CreateItem
+
+
+
+
+//negative starting price 
+
+grpcurl -plaintext \
+-import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+-proto catalogue.proto \
+-d '{"title":"Old Mouse","description":"Broken scroll wheel","starting_price":-10,"duration_hours":10,"seller_id":12}' \
+localhost:50051 catalogue.CatalogueService/CreateItem
+
+
+//invalid time duration 
+
+grpcurl -plaintext \
+-import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+-proto catalogue.proto \
+-d '{"title":" Monitor","description":"24 inch","starting_price":200,"duration_hours":0,"seller_id":12}' \
+localhost:50051 catalogue.CatalogueService/CreateItem
+
+
+
+
+========================
+ITEM SEARCH
+
+//item search keyword
+
+grpcurl -plaintext \
+-import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+-proto catalogue.proto \
+-d '{"keyword":"toy car"}' \
+localhost:50051 catalogue.CatalogueService/SearchItems
+
+//search keyword case insensitive
+
+grpcurl -plaintext \
+-import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+-proto catalogue.proto \
+-d '{"keyword":"TOY CAR"}' \
+localhost:50051 catalogue.CatalogueService/SearchItems
+
+//search for keyword that we know doesnt exist in items list
+
+grpcurl -plaintext \
+-import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+-proto catalogue.proto \
+-d '{"keyword":"Spaceship"}' \
+localhost:50051 catalogue.CatalogueService/SearchItems
+
+//search empty "" keyword (should return all items)
+
+grpcurl -plaintext \
+-import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+-proto catalogue.proto \
+-d '{"keyword":""}' \
+localhost:50051 catalogue.CatalogueService/SearchItems
+
+
+==========
+
+//get all items
+
+grpcurl -plaintext \
+-import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+-proto catalogue.proto \
+localhost:50051 catalogue.CatalogueService/GetAllItems
+
+//check if remainingTimeSeconds decreases
+Run this command twice:
+
+grpcurl -plaintext \
+-import-path /Users/dave/Desktop/AuctionSite/catalogue-service/app/grpc \
+-proto catalogue.proto \
+localhost:50051 catalogue.CatalogueService/GetAllItems
