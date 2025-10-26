@@ -2,7 +2,7 @@ import grpc
 from concurrent import futures
 from datetime import datetime, timedelta
 
-from app.database import SessionLocal
+from app.database import SessionLocal, init_db
 from app import models
 from . import catalogue_pb2, catalogue_pb2_grpc
 
@@ -118,6 +118,11 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
 
 
 def serve():
+    # Create database tables if they don't exist
+    print("Initializing database tables...")
+    init_db()
+    print("Database tables ready!")
+
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     catalogue_pb2_grpc.add_CatalogueServiceServicer_to_server(
         CatalogueServiceServicer(), server
