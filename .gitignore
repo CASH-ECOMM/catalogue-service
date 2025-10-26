@@ -10,6 +10,7 @@ env/
 *.env
 app/grpc/*_pb2.py
 app/grpc/*_pb2_grpc.py
+app/grpc/*_pb2.pyi
 .DS_Store
 .vscode/
 .idea/

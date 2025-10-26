@@ -4,38 +4,6 @@ from datetime import datetime, timedelta
 
 from app.database import SessionLocal
 from app import models
-
-
-import os
-import subprocess
-
-proto_file = os.path.join(os.path.dirname(__file__), "catalogue.proto")
-pb2_file = os.path.join(os.path.dirname(__file__), "catalogue_pb2.py")
-pb2_grpc_file = os.path.join(os.path.dirname(__file__), "catalogue_pb2_grpc.py")
-
-if not (os.path.exists(pb2_file) and os.path.exists(pb2_grpc_file)):
-    print("Generating gRPC python code from catalogue.proto")
-    subprocess.run([
-        "python", "-m", "grpc_tools.protoc",
-        f"-I{os.path.dirname(proto_file)}",
-        f"--python_out={os.path.dirname(proto_file)}",
-        f"--grpc_python_out={os.path.dirname(proto_file)}",
-        proto_file
-    ], check=True)
-   
-    for path in [pb2_grpc_file]:
-        with open(path, "r") as f:
-            content = f.read()
-        content = content.replace(
-            "import catalogue_pb2 as catalogue__pb2",
-            "from app.grpc import catalogue_pb2 as catalogue__pb2"
-        )
-        with open(path, "w") as f:
-            f.write(content)
-    
-
-from app.grpc import catalogue_pb2, catalogue_pb2_grpc
-
 from . import catalogue_pb2, catalogue_pb2_grpc
 
 
@@ -61,15 +29,17 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
                 seller_id=item.seller_id,
                 shipping_cost=item.shipping_cost,
                 shipping_time=item.shipping_time,
-                remaining_time_seconds=remaining
+                remaining_time_seconds=remaining,
             )
         return response
 
     def SearchItems(self, request, context):
         db = SessionLocal()
-        results = db.query(models.Item).filter(
-            models.Item.title.ilike(f"%{request.keyword}%")
-        ).all()
+        results = (
+            db.query(models.Item)
+            .filter(models.Item.title.ilike(f"%{request.keyword}%"))
+            .all()
+        )
 
         now = datetime.utcnow()
         response = catalogue_pb2.ItemList()
@@ -89,7 +59,7 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
                 seller_id=item.seller_id,
                 shipping_cost=item.shipping_cost,
                 shipping_time=item.shipping_time,
-                remaining_time_seconds=remaining
+                remaining_time_seconds=remaining,
             )
         return response
 
@@ -101,9 +71,15 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
         if not request.description.strip():
             context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Description is required")
         if request.starting_price is None or request.starting_price <= 0:
-            context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Starting price must be greater than 0")
+            context.abort(
+                grpc.StatusCode.INVALID_ARGUMENT,
+                "Starting price must be greater than 0",
+            )
         if request.duration_hours is None or request.duration_hours <= 0:
-            context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Duration hours must be greater than 0")
+            context.abort(
+                grpc.StatusCode.INVALID_ARGUMENT,
+                "Duration hours must be greater than 0",
+            )
 
         now = datetime.utcnow()
         end_time = now + timedelta(hours=request.duration_hours)
@@ -116,7 +92,7 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
             duration_hours=request.duration_hours,
             created_at=now,
             end_time=end_time,
-            seller_id=request.seller_id
+            seller_id=request.seller_id,
         )
         db.add(new_item)
         db.commit()
@@ -137,13 +113,15 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
             seller_id=new_item.seller_id,
             shipping_cost=new_item.shipping_cost,
             shipping_time=new_item.shipping_time,
-            remaining_time_seconds=remaining
+            remaining_time_seconds=remaining,
         )
 
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    catalogue_pb2_grpc.add_CatalogueServiceServicer_to_server(CatalogueServiceServicer(), server)
+    catalogue_pb2_grpc.add_CatalogueServiceServicer_to_server(
+        CatalogueServiceServicer(), server
+    )
     server.add_insecure_port("[::]:50051")
     print("gRPC CatalogueService running on port 50051")
     server.start()
