@@ -17,19 +17,19 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
         for item in items:
             remaining = max(int((item.end_time - now).total_seconds()), 0)
             response.items.add(
-                id=item.id,
+                id=int(item.id),
                 title=item.title,
                 description=item.description,
-                starting_price=item.starting_price,
-                current_price=item.current_price,
-                active=item.active,
-                duration_hours=item.duration_hours,
+                starting_price=int(item.starting_price),
+                current_price=int(item.current_price),
+                active=bool(item.active),
+                duration_hours=int(item.duration_hours),
                 created_at=item.created_at.isoformat(),
                 end_time=item.end_time.isoformat() if item.end_time else "",
-                seller_id=item.seller_id,
-                shipping_cost=item.shipping_cost,
-                shipping_time=item.shipping_time,
-                remaining_time_seconds=remaining,
+                seller_id=int(item.seller_id),
+                shipping_cost=int(float(item.shipping_cost or 0)),
+                shipping_time=int(float(item.shipping_time or 0)),
+                remaining_time_seconds=int(remaining),
             )
         return response
 
@@ -47,21 +47,48 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
         for item in results:
             remaining = max(int((item.end_time - now).total_seconds()), 0)
             response.items.add(
-                id=item.id,
+                id=int(item.id),
                 title=item.title,
                 description=item.description,
-                starting_price=item.starting_price,
-                current_price=item.current_price,
-                active=item.active,
-                duration_hours=item.duration_hours,
+                starting_price=int(item.starting_price),
+                current_price=int(item.current_price),
+                active=bool(item.active),
+                duration_hours=int(item.duration_hours),
                 created_at=item.created_at.isoformat(),
                 end_time=item.end_time.isoformat() if item.end_time else "",
-                seller_id=item.seller_id,
-                shipping_cost=item.shipping_cost,
-                shipping_time=item.shipping_time,
-                remaining_time_seconds=remaining,
+                seller_id=int(item.seller_id),
+                shipping_cost=int(float(item.shipping_cost or 0)),
+                shipping_time=int(float(item.shipping_time or 0)),
+                remaining_time_seconds=int(remaining),
             )
         return response
+    
+    def GetItem(self, request, context):
+            db = SessionLocal()
+            item = db.query(models.Item).filter(models.Item.id == request.id).first()
+
+            if not item:
+                context.abort(grpc.StatusCode.NOT_FOUND, f"Item with id {request.id} not found")
+
+            now = datetime.utcnow()
+            remaining = max(int((item.end_time - now).total_seconds()), 0)
+
+            return catalogue_pb2.ItemResponse(
+                id=int(item.id),
+                title=item.title,
+                description=item.description,
+                starting_price=int(item.starting_price),
+                current_price=int(item.current_price),
+                active=bool(item.active),
+                duration_hours=int(item.duration_hours),
+                created_at=item.created_at.isoformat(),
+                end_time=item.end_time.isoformat() if item.end_time else "",
+                seller_id=int(item.seller_id),
+                shipping_cost=int(float(item.shipping_cost or 0)),
+                shipping_time=int(float(item.shipping_time or 0)),
+                remaining_time_seconds=int(remaining),
+            )
+
 
     def CreateItem(self, request, context):
         db = SessionLocal()
@@ -83,7 +110,6 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
 
         now = datetime.utcnow()
         end_time = now + timedelta(hours=request.duration_hours)
-        
 
         new_item = models.Item(
             title=request.title,
@@ -102,48 +128,21 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
         remaining = max(int((end_time - now).total_seconds()), 0)
 
         return catalogue_pb2.ItemResponse(
-            id=new_item.id,
+            id=int(new_item.id),
             title=new_item.title,
             description=new_item.description,
-            starting_price=new_item.starting_price,
-            current_price=new_item.current_price,
-            active=new_item.active,
-            duration_hours=new_item.duration_hours,
+            starting_price=int(new_item.starting_price),
+            current_price=int(new_item.current_price),
+            active=bool(new_item.active),
+            duration_hours=int(new_item.duration_hours),
             created_at=new_item.created_at.isoformat(),
             end_time=new_item.end_time.isoformat() if new_item.end_time else "",
-            seller_id=new_item.seller_id,
-            shipping_cost=new_item.shipping_cost,
-            shipping_time=new_item.shipping_time,
-            remaining_time_seconds=remaining,
+            seller_id=int(new_item.seller_id),
+            shipping_cost=int(float(new_item.shipping_cost or 0)),
+            shipping_time=int(float(new_item.shipping_time or 0)),
+            remaining_time_seconds=int(remaining),
         )
     
-
-    def GetItem(self, request, context):
-        db = SessionLocal()
-        item = db.query(models.Item).filter(models.Item.id == request.id).first()
-
-        if not item:
-            context.abort(grpc.StatusCode.NOT_FOUND, f"Item with id {request.id} not found")
-
-        now = datetime.utcnow()
-        remaining = max(int((item.end_time - now).total_seconds()), 0)
-
-        return catalogue_pb2.ItemResponse(
-            id=item.id,
-            title=item.title,
-            description=item.description,
-            starting_price=item.starting_price,
-            current_price=item.current_price,
-            active=item.active,
-            duration_hours=item.duration_hours,
-            created_at=item.created_at.isoformat(),
-            end_time=item.end_time.isoformat() if item.end_time else "",
-            seller_id=item.seller_id,
-            shipping_cost=item.shipping_cost,
-            shipping_time=item.shipping_time,
-            remaining_time_seconds=remaining,
-    )
-
 
 
 def serve():
