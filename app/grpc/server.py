@@ -83,6 +83,7 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
 
         now = datetime.utcnow()
         end_time = now + timedelta(hours=request.duration_hours)
+        
 
         new_item = models.Item(
             title=request.title,
@@ -115,10 +116,37 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
             shipping_time=new_item.shipping_time,
             remaining_time_seconds=remaining,
         )
+    
+
+    def GetItem(self, request, context):
+        db = SessionLocal()
+        item = db.query(models.Item).filter(models.Item.id == request.id).first()
+
+        if not item:
+            context.abort(grpc.StatusCode.NOT_FOUND, f"Item with id {request.id} not found")
+
+        now = datetime.utcnow()
+        remaining = max(int((item.end_time - now).total_seconds()), 0)
+
+        return catalogue_pb2.ItemResponse(
+            id=item.id,
+            title=item.title,
+            description=item.description,
+            starting_price=item.starting_price,
+            current_price=item.current_price,
+            active=item.active,
+            duration_hours=item.duration_hours,
+            created_at=item.created_at.isoformat(),
+            end_time=item.end_time.isoformat() if item.end_time else "",
+            seller_id=item.seller_id,
+            shipping_cost=item.shipping_cost,
+            shipping_time=item.shipping_time,
+            remaining_time_seconds=remaining,
+    )
+
 
 
 def serve():
-    # Create database tables if they don't exist
     print("Initializing database tables...")
     init_db()
     print("Database tables ready!")
