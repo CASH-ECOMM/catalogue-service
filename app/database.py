@@ -22,7 +22,7 @@ def get_db():
 
 
 def init_db():
-    """Initialize database - create all tables"""
+    """Initialize database"""
     from app.models import Item  # Import models
 
     Base.metadata.create_all(bind=engine)
