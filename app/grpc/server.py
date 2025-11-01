@@ -8,7 +8,9 @@ from . import catalogue_pb2, catalogue_pb2_grpc
 
 
 class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
+    
     def GetAllItems(self, request, context):
+        """gRPC service for managing catalogue items"""
         db = SessionLocal()
         items = db.query(models.Item).all()
         now = datetime.utcnow()
@@ -33,7 +35,9 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
             )
         return response
 
+    
     def SearchItems(self, request, context):
+        """Search items by keyword from the title"""
         db = SessionLocal()
         results = (
             db.query(models.Item)
@@ -64,6 +68,7 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
         return response
     
     def GetItem(self, request, context):
+            """Get a single item by specific item ID """
             db = SessionLocal()
             item = db.query(models.Item).filter(models.Item.id == request.id).first()
 
@@ -91,6 +96,7 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
 
 
     def CreateItem(self, request, context):
+        """Create a new item in the catalogue"""
         db = SessionLocal()
 
         if not request.title.strip():
@@ -154,8 +160,8 @@ def serve():
     catalogue_pb2_grpc.add_CatalogueServiceServicer_to_server(
         CatalogueServiceServicer(), server
     )
-    server.add_insecure_port("[::]:50051")
-    print("gRPC CatalogueService running on port 50051")
+    server.add_insecure_port("[::]:50052")
+    print("gRPC CatalogueService running on port 50052")
     server.start()
     server.wait_for_termination()
 
