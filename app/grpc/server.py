@@ -1,3 +1,4 @@
+import os
 import grpc
 from concurrent import futures
 from datetime import datetime, timedelta
@@ -8,7 +9,7 @@ from . import catalogue_pb2, catalogue_pb2_grpc
 
 
 class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
-    
+
     def GetAllItems(self, request, context):
         """gRPC service for managing catalogue items"""
         db = SessionLocal()
@@ -35,7 +36,6 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
             )
         return response
 
-    
     def SearchItems(self, request, context):
         """Search items by keyword from the title"""
         db = SessionLocal()
@@ -66,34 +66,35 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
                 remaining_time_seconds=int(remaining),
             )
         return response
-    
+
     def GetItem(self, request, context):
-            """Get a single item by specific item ID """
-            db = SessionLocal()
-            item = db.query(models.Item).filter(models.Item.id == request.id).first()
+        """Get a single item by specific item ID"""
+        db = SessionLocal()
+        item = db.query(models.Item).filter(models.Item.id == request.id).first()
 
-            if not item:
-                context.abort(grpc.StatusCode.NOT_FOUND, f"Item with id {request.id} not found")
-
-            now = datetime.utcnow()
-            remaining = max(int((item.end_time - now).total_seconds()), 0)
-
-            return catalogue_pb2.ItemResponse(
-                id=int(item.id),
-                title=item.title,
-                description=item.description,
-                starting_price=int(item.starting_price),
-                current_price=int(item.current_price),
-                active=bool(item.active),
-                duration_hours=int(item.duration_hours),
-                created_at=item.created_at.isoformat(),
-                end_time=item.end_time.isoformat() if item.end_time else "",
-                seller_id=int(item.seller_id),
-                shipping_cost=int(float(item.shipping_cost or 0)),
-                shipping_time=int(float(item.shipping_time or 0)),
-                remaining_time_seconds=int(remaining),
+        if not item:
+            context.abort(
+                grpc.StatusCode.NOT_FOUND, f"Item with id {request.id} not found"
             )
 
+        now = datetime.utcnow()
+        remaining = max(int((item.end_time - now).total_seconds()), 0)
+
+        return catalogue_pb2.ItemResponse(
+            id=int(item.id),
+            title=item.title,
+            description=item.description,
+            starting_price=int(item.starting_price),
+            current_price=int(item.current_price),
+            active=bool(item.active),
+            duration_hours=int(item.duration_hours),
+            created_at=item.created_at.isoformat(),
+            end_time=item.end_time.isoformat() if item.end_time else "",
+            seller_id=int(item.seller_id),
+            shipping_cost=int(float(item.shipping_cost or 0)),
+            shipping_time=int(float(item.shipping_time or 0)),
+            remaining_time_seconds=int(remaining),
+        )
 
     def CreateItem(self, request, context):
         """Create a new item in the catalogue"""
@@ -148,7 +149,6 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
             shipping_time=int(float(new_item.shipping_time or 0)),
             remaining_time_seconds=int(remaining),
         )
-    
 
 
 def serve():
@@ -156,12 +156,13 @@ def serve():
     init_db()
     print("Database tables ready!")
 
+    port = os.getenv("GRPC_PORT", "50051")
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     catalogue_pb2_grpc.add_CatalogueServiceServicer_to_server(
         CatalogueServiceServicer(), server
     )
-    server.add_insecure_port("[::]:50052")
-    print("gRPC CatalogueService running on port 50052")
+    server.add_insecure_port(f"[::]:{port}")
+    print(f"gRPC CatalogueService running on port {port}")
     server.start()
     server.wait_for_termination()
 
