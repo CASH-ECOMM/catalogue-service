@@ -165,41 +165,24 @@ class CatalogueServiceServicer(catalogue_pb2_grpc.CatalogueServiceServicer):
 
     def DeactivateItem(self, request, context):
         db = SessionLocal()
+        try:
+            item = db.query(models.Item).filter(models.Item.id == request.id).first()
 
-        item = db.query(models.Item).filter(models.Item.id == request.id).first()
+            if not item:
+                context.abort(
+                    grpc.StatusCode.NOT_FOUND,
+                    f"Item with id {request.id} not found"
+                )
 
-        if not item:
-            context.abort(
-                grpc.StatusCode.NOT_FOUND,
-                f"Item with id {request.id} not found"
+            item.active = False
+            db.commit()
+
+            return catalogue_pb2.DeactivateItemResponse(
+                success=True,
+                message=f"Item {request.id} deactivated successfully"
             )
-
-        item.active = False
-        db.commit()
-
-        return catalogue_pb2.DeactivateItemResponse(
-            success=True,
-            message=f"Item {request.id} deactivated successfully"
-        )
-    
-    def DeactivateItem(self, request, context):
-        db = SessionLocal()
-
-        item = db.query(models.Item).filter(models.Item.id == request.id).first()
-
-        if not item:
-            context.abort(
-                grpc.StatusCode.NOT_FOUND,
-                f"Item with id {request.id} not found"
-            )
-
-        item.active = False
-        db.commit()
-
-        return catalogue_pb2.DeactivateItemResponse(
-            success=True,
-            message=f"Item {request.id} deactivated successfully"
-        )
+        finally:
+            db.close()
 
 
 
